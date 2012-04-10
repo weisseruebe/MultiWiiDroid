@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.rettig.ipov;
+package de.rettig.multiwii;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -23,6 +23,9 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -33,6 +36,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,7 +53,13 @@ public class MultiWiiMainActivity extends Activity {
 	final int dataLength = 155;
 	byte[] buffer = new byte[dataLength];
 	int dataIndex = 0;
-	
+	Bitmap bitmapOrg;
+	ImageView imageViewRoll;
+	ImageView imageViewPitch;
+
+	private int angleX;
+	private int angleY;
+
 	// Debugging
 	private static final String TAG = "MultWii";
 	private static final boolean D = true;
@@ -91,6 +101,11 @@ public class MultiWiiMainActivity extends Activity {
 		setContentView(R.layout.main);
 		getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.custom_title);
 
+		imageViewRoll = (ImageView) findViewById(R.id.imageViewRoll);
+		imageViewPitch = (ImageView) findViewById(R.id.imageViewPitch);
+		
+		bitmapOrg = BitmapFactory.decodeResource(getResources(), R.drawable.app_icon);
+		
 		// Set up the custom title
 		mTitle = (TextView) findViewById(R.id.title_left_text);
 		mTitle.setText(R.string.app_name);
@@ -119,7 +134,7 @@ public class MultiWiiMainActivity extends Activity {
 			startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
 			// Otherwise, setup the chat session
 		} else {
-			if (mMultiWiiConnectorService == null) setupChat();
+			if (mMultiWiiConnectorService == null) setupCommunication();
 		}
 	}
 
@@ -140,13 +155,12 @@ public class MultiWiiMainActivity extends Activity {
 		}
 	}
 
-	private void setupChat() {
+	private void setupCommunication() {
 		mButtonSend.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				mMultiWiiConnectorService.write("M".getBytes());
 			}
 		});
-
 
 		mMultiWiiConnectorService = new MultiWiiConnectorService(this, mHandler);
 	}
@@ -193,7 +207,7 @@ public class MultiWiiMainActivity extends Activity {
 				case MultiWiiConnectorService.STATE_CONNECTED:
 					mTitle.setText(R.string.title_connected_to);
 					mTitle.append(mConnectedDeviceName);
-					timer.schedule(pollTask, 1000,100);
+					timer.schedule(pollTask, 1000,250);
 					break;
 				case MultiWiiConnectorService.STATE_CONNECTING:
 					mTitle.setText(R.string.title_connecting);
@@ -219,6 +233,7 @@ public class MultiWiiMainActivity extends Activity {
 		}
 	};
 
+
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if(D) Log.d(TAG, "onActivityResult " + resultCode);
 		switch (requestCode) {
@@ -232,7 +247,7 @@ public class MultiWiiMainActivity extends Activity {
 		case REQUEST_ENABLE_BT:
 			// When the request to enable Bluetooth returns
 			if (resultCode == Activity.RESULT_OK) {
-				setupChat();
+				setupCommunication();
 			} else {
 				// User did not enable Bluetooth or an error occured
 				Log.d(TAG, "BT not enabled");
@@ -273,6 +288,11 @@ public class MultiWiiMainActivity extends Activity {
 		pAx.setProgress(ax);
 		pAy.setProgress(ay);
 		pAz.setProgress(az);
+		
+		angleX = ((buffer[78] & 0xFF) + (buffer[79] << 8)) /10;
+		angleY = ((buffer[80] & 0xFF) + (buffer[81] << 8)) /10; 
+
+		updateUI();
 	}
 
 	private void connectDevice(Intent data, boolean secure) {
@@ -291,6 +311,20 @@ public class MultiWiiMainActivity extends Activity {
 		return true;
 	}
 
+	protected void updateUI(){
+		Matrix matrix = new Matrix();
+		matrix.postRotate(angleX);
+		Bitmap bmp = Bitmap.createBitmap(bitmapOrg, 0, 0, bitmapOrg.getWidth(), bitmapOrg.getHeight(), matrix, true);
+		imageViewRoll.setImageBitmap(bmp);
+		
+		matrix = new Matrix();
+		matrix.postRotate(angleY);
+		bmp = Bitmap.createBitmap(bitmapOrg, 0, 0, bitmapOrg.getWidth(), bitmapOrg.getHeight(), matrix, true);
+		
+		imageViewPitch.setImageBitmap(bmp);
+		
+	}
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Intent serverIntent = null;

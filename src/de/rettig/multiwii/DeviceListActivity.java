@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.rettig.ipov;
+package de.rettig.multiwii;
 
 import java.util.Set;
 

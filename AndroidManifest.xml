@@ -23,7 +23,7 @@
 
     <application android:label="@string/app_name"
                  android:icon="@drawable/app_icon" >
-        <activity android:name="de.rettig.ipov.MultiWiiMainActivity"
+        <activity android:name="de.rettig.multiwii.MultiWiiMainActivity"
                   android:label="@string/app_name"
                   android:configChanges="orientation|keyboardHidden">
             <intent-filter>
@@ -31,7 +31,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="de.rettig.ipov.DeviceListActivity"
+        <activity android:name="de.rettig.multiwii.DeviceListActivity"
                   android:label="@string/select_device"
                   android:theme="@android:style/Theme.Dialog"
                   android:configChanges="orientation|keyboardHidden" />
