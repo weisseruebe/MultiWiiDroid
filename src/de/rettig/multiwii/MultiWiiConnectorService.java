@@ -424,7 +424,7 @@ public class MultiWiiConnectorService {
 					// Read from the InputStream
 					bytes = mmInStream.read(buffer);
 					// Send the obtained bytes to the UI Activity
-					mHandler.obtainMessage(MultiWiiMainActivity.MESSAGE_READ, bytes, -1, buffer).sendToTarget();
+					mHandler.obtainMessage(MultiWiiMainActivity.MESSAGE_READ, bytes, -1, buffer.clone()).sendToTarget();
 				} catch (IOException e) {
 					Log.e(TAG, "disconnected", e);
 					connectionLost();

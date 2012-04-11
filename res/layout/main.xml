@@ -53,14 +53,14 @@
                 android:id="@+id/imageViewRoll"
                 android:layout_width="147dp"
                 android:layout_height="match_parent"
-                android:src="@drawable/app_icon" />
+                android:src="@drawable/wiifront" />
 
             <ImageView
                 android:id="@+id/imageViewPitch"
                 android:layout_width="160dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:src="@drawable/app_icon" />
+                android:src="@drawable/wiifront" />
         </LinearLayout>
 
     </LinearLayout>

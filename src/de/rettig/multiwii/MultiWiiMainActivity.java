@@ -47,10 +47,10 @@ import com.example.android.BluetoothChat.R;
  * This is the main Activity that displays the current chat session.
  */
 public class MultiWiiMainActivity extends Activity {
-	
+
 	Timer timer = new Timer();
-	
-	final int dataLength = 155;
+
+	final int dataLength = 154;
 	byte[] buffer = new byte[dataLength];
 	int dataIndex = 0;
 	Bitmap bitmapOrg;
@@ -103,9 +103,9 @@ public class MultiWiiMainActivity extends Activity {
 
 		imageViewRoll = (ImageView) findViewById(R.id.imageViewRoll);
 		imageViewPitch = (ImageView) findViewById(R.id.imageViewPitch);
-		
-		bitmapOrg = BitmapFactory.decodeResource(getResources(), R.drawable.app_icon);
-		
+
+		bitmapOrg = BitmapFactory.decodeResource(getResources(), R.drawable.wiifront);
+
 		// Set up the custom title
 		mTitle = (TextView) findViewById(R.id.title_left_text);
 		mTitle.setText(R.string.app_name);
@@ -161,7 +161,6 @@ public class MultiWiiMainActivity extends Activity {
 				mMultiWiiConnectorService.write("M".getBytes());
 			}
 		});
-
 		mMultiWiiConnectorService = new MultiWiiConnectorService(this, mHandler);
 	}
 
@@ -207,7 +206,7 @@ public class MultiWiiMainActivity extends Activity {
 				case MultiWiiConnectorService.STATE_CONNECTED:
 					mTitle.setText(R.string.title_connected_to);
 					mTitle.append(mConnectedDeviceName);
-					timer.schedule(pollTask, 1000,250);
+					timer.schedule(pollTask, 1000,100);
 					break;
 				case MultiWiiConnectorService.STATE_CONNECTING:
 					mTitle.setText(R.string.title_connecting);
@@ -233,7 +232,6 @@ public class MultiWiiMainActivity extends Activity {
 		}
 	};
 
-
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if(D) Log.d(TAG, "onActivityResult " + resultCode);
 		switch (requestCode) {
@@ -258,25 +256,19 @@ public class MultiWiiMainActivity extends Activity {
 	}
 
 	protected void receiveData(byte[] data, int length) {
-//		Log.d(TAG,"Receive "+length+" "+dataIndex);
-		if (dataIndex == 0 & data[0] == 'M'){
-			Log.d(TAG, "M");
-			System.arraycopy(data, 0, buffer, dataIndex, length);
-			dataIndex += length;
-		} else if(dataIndex > 0  & dataIndex < dataLength-1){
-//			Log.d(TAG, "D");
-			System.arraycopy(data, 0, buffer, dataIndex, length);
-			dataIndex += length;
-		}  
-		if (dataIndex == dataLength){
-			Log.d(TAG,"Complete "+buffer[buffer.length-1]);
-			processData();
-			dataIndex = 0;
+		for (int i=0;i<length;i++){
+			if (data[i]=='M' & dataIndex == dataLength){
+				processData();
+				dataIndex = 0;
+			} else if (dataIndex < dataLength){
+				if (data[i] == 'M')Log.d(TAG,"M at "+dataIndex);
+				Log.d(TAG,"data at "+dataIndex+" :"+data[i]);
+				buffer[dataIndex++] = data[i];
+			}
 		}
 	}
 
 	private void processData() {
-		
 		int ax = (buffer[2] & 0xFF) + (buffer[3] << 8); 
 		int ay = (buffer[4] & 0xFF) + (buffer[5] << 8); 
 		int az = (buffer[6] & 0xFF) + (buffer[7] << 8); 
@@ -284,11 +276,11 @@ public class MultiWiiMainActivity extends Activity {
 		ProgressBar pAx = (ProgressBar) findViewById(R.id.progressBar1);
 		ProgressBar pAy = (ProgressBar) findViewById(R.id.progressBar2);
 		ProgressBar pAz = (ProgressBar) findViewById(R.id.progressBar3);
-		
+
 		pAx.setProgress(ax);
 		pAy.setProgress(ay);
 		pAz.setProgress(az);
-		
+
 		angleX = ((buffer[78] & 0xFF) + (buffer[79] << 8)) /10;
 		angleY = ((buffer[80] & 0xFF) + (buffer[81] << 8)) /10; 
 
@@ -312,19 +304,26 @@ public class MultiWiiMainActivity extends Activity {
 	}
 
 	protected void updateUI(){
+		double radians = Math.toRadians(angleX);
+		double sin = Math.abs(Math.sin(radians));
+		double cos = Math.abs(Math.cos(radians));
+		// figure out total width and height of new bitmap
+		int newWidth = (int) (bitmapOrg.getWidth() * cos + bitmapOrg.getHeight() * sin);
+		int newHeight = (int) (bitmapOrg.getWidth() * sin + bitmapOrg.getHeight() * cos);
+		Log.d(TAG,newWidth+" "+newHeight);
 		Matrix matrix = new Matrix();
 		matrix.postRotate(angleX);
 		Bitmap bmp = Bitmap.createBitmap(bitmapOrg, 0, 0, bitmapOrg.getWidth(), bitmapOrg.getHeight(), matrix, true);
 		imageViewRoll.setImageBitmap(bmp);
-		
+
 		matrix = new Matrix();
 		matrix.postRotate(angleY);
 		bmp = Bitmap.createBitmap(bitmapOrg, 0, 0, bitmapOrg.getWidth(), bitmapOrg.getHeight(), matrix, true);
-		
+
 		imageViewPitch.setImageBitmap(bmp);
-		
+
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Intent serverIntent = null;
@@ -343,9 +342,8 @@ public class MultiWiiMainActivity extends Activity {
 		return false;
 	}
 
-	
+
 	TimerTask pollTask = new TimerTask() {
-		
 		@Override
 		public void run() {
 			mMultiWiiConnectorService.write("M".getBytes());			
