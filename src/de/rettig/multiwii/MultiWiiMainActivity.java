@@ -41,7 +41,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.android.BluetoothChat.R;
 
 /**
  * This is the main Activity that displays the current chat session.
@@ -56,9 +55,6 @@ public class MultiWiiMainActivity extends Activity {
 	Bitmap bitmapOrg;
 	ImageView imageViewRoll;
 	ImageView imageViewPitch;
-
-	private int angleX;
-	private int angleY;
 
 	// Debugging
 	private static final String TAG = "MultWii";
@@ -89,7 +85,11 @@ public class MultiWiiMainActivity extends Activity {
 	// Member object for the chat services
 	private MultiWiiConnectorService mMultiWiiConnectorService = null;
 	private Button mButtonSend;
-
+	private ProgressBar pAz;
+	private ProgressBar pAy;
+	private ProgressBar pAx;
+	
+	private Copter copter = new Copter();
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -103,6 +103,13 @@ public class MultiWiiMainActivity extends Activity {
 
 		imageViewRoll = (ImageView) findViewById(R.id.imageViewRoll);
 		imageViewPitch = (ImageView) findViewById(R.id.imageViewPitch);
+		pAx = (ProgressBar) findViewById(R.id.progressBar1);
+		pAy = (ProgressBar) findViewById(R.id.progressBar2);
+		pAz = (ProgressBar) findViewById(R.id.progressBar3);
+
+		pAx.setMax(512);
+		pAy.setMax(512);
+		pAz.setMax(512);
 
 		bitmapOrg = BitmapFactory.decodeResource(getResources(), R.drawable.wiifront);
 
@@ -163,8 +170,6 @@ public class MultiWiiMainActivity extends Activity {
 		});
 		mMultiWiiConnectorService = new MultiWiiConnectorService(this, mHandler);
 	}
-
-
 
 	@Override
 	public synchronized void onPause() {
@@ -261,29 +266,19 @@ public class MultiWiiMainActivity extends Activity {
 				processData();
 				dataIndex = 0;
 			} else if (dataIndex < dataLength){
-				if (data[i] == 'M')Log.d(TAG,"M at "+dataIndex);
-				Log.d(TAG,"data at "+dataIndex+" :"+data[i]);
+				//Log.d(TAG,"data at "+dataIndex+" :"+data[i]);
 				buffer[dataIndex++] = data[i];
 			}
 		}
 	}
 
 	private void processData() {
-		int ax = (buffer[2] & 0xFF) + (buffer[3] << 8); 
-		int ay = (buffer[4] & 0xFF) + (buffer[5] << 8); 
-		int az = (buffer[6] & 0xFF) + (buffer[7] << 8); 
-
-		ProgressBar pAx = (ProgressBar) findViewById(R.id.progressBar1);
-		ProgressBar pAy = (ProgressBar) findViewById(R.id.progressBar2);
-		ProgressBar pAz = (ProgressBar) findViewById(R.id.progressBar3);
-
-		pAx.setProgress(ax);
-		pAy.setProgress(ay);
-		pAz.setProgress(az);
-
-		angleX = ((buffer[78] & 0xFF) + (buffer[79] << 8)) /10;
-		angleY = ((buffer[80] & 0xFF) + (buffer[81] << 8)) /10; 
-
+		copter.ax = (buffer[2] & 0xFF) + (buffer[3] << 8); 
+		copter.ay = (buffer[4] & 0xFF) + (buffer[5] << 8); 
+		copter.az = (buffer[6] & 0xFF) + (buffer[7] << 8); 
+		copter.angleX = ((buffer[78] & 0xFF) + (buffer[79] << 8)) /10;
+		copter.angleY = ((buffer[80] & 0xFF) + (buffer[81] << 8)) /10; 
+		Log.d(TAG,"Ax "+copter.ax);
 		updateUI();
 	}
 
@@ -304,23 +299,20 @@ public class MultiWiiMainActivity extends Activity {
 	}
 
 	protected void updateUI(){
-		double radians = Math.toRadians(angleX);
-		double sin = Math.abs(Math.sin(radians));
-		double cos = Math.abs(Math.cos(radians));
-		// figure out total width and height of new bitmap
-		int newWidth = (int) (bitmapOrg.getWidth() * cos + bitmapOrg.getHeight() * sin);
-		int newHeight = (int) (bitmapOrg.getWidth() * sin + bitmapOrg.getHeight() * cos);
-		Log.d(TAG,newWidth+" "+newHeight);
+		
 		Matrix matrix = new Matrix();
-		matrix.postRotate(angleX);
+		matrix.setRotate(copter.angleX);
 		Bitmap bmp = Bitmap.createBitmap(bitmapOrg, 0, 0, bitmapOrg.getWidth(), bitmapOrg.getHeight(), matrix, true);
 		imageViewRoll.setImageBitmap(bmp);
 
 		matrix = new Matrix();
-		matrix.postRotate(angleY);
+		matrix.setRotate(copter.angleY);
 		bmp = Bitmap.createBitmap(bitmapOrg, 0, 0, bitmapOrg.getWidth(), bitmapOrg.getHeight(), matrix, true);
-
 		imageViewPitch.setImageBitmap(bmp);
+		
+		pAx.setProgress(copter.ax+256);
+		pAy.setProgress(copter.ay+256);
+		pAz.setProgress(copter.az+256);
 
 	}
 

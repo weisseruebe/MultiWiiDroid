@@ -37,8 +37,6 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.example.android.BluetoothChat.R;
-
 /**
  * This Activity appears as a dialog. It lists any paired devices and
  * devices detected in the area after discovery. When a device is chosen
