@@ -37,7 +37,10 @@ import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,7 +55,9 @@ public class MultiWiiMainActivity extends Activity {
 	final int dataLength = 154;
 	byte[] buffer = new byte[dataLength];
 	int dataIndex = 0;
-	Bitmap bitmapOrg;
+	Bitmap picWiiFront;
+	Bitmap picWiiSide;
+	
 	ImageView imageViewRoll;
 	ImageView imageViewPitch;
 
@@ -88,7 +93,7 @@ public class MultiWiiMainActivity extends Activity {
 	private ProgressBar pAz;
 	private ProgressBar pAy;
 	private ProgressBar pAx;
-	
+	private SeekBar seekBarAngle;
 	private Copter copter = new Copter();
 
 	@Override
@@ -103,6 +108,9 @@ public class MultiWiiMainActivity extends Activity {
 
 		imageViewRoll = (ImageView) findViewById(R.id.imageViewRoll);
 		imageViewPitch = (ImageView) findViewById(R.id.imageViewPitch);
+		imageViewRoll.setScaleType(ScaleType.CENTER);
+		imageViewPitch.setScaleType(ScaleType.CENTER);
+		
 		pAx = (ProgressBar) findViewById(R.id.progressBar1);
 		pAy = (ProgressBar) findViewById(R.id.progressBar2);
 		pAz = (ProgressBar) findViewById(R.id.progressBar3);
@@ -111,13 +119,34 @@ public class MultiWiiMainActivity extends Activity {
 		pAy.setMax(512);
 		pAz.setMax(512);
 
-		bitmapOrg = BitmapFactory.decodeResource(getResources(), R.drawable.wiifront);
+		seekBarAngle = (SeekBar) findViewById(R.id.seekBar1);
+		seekBarAngle.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+				copter.angleX = progress;
+				updateUI();
+			}
+		});
+		picWiiFront = BitmapFactory.decodeResource(getResources(), R.drawable.wiifront);
+		picWiiSide = BitmapFactory.decodeResource(getResources(), R.drawable.wiiside);
 
-		// Set up the custom title
 		mTitle = (TextView) findViewById(R.id.title_left_text);
 		mTitle.setText(R.string.app_name);
 		mTitle = (TextView) findViewById(R.id.title_right_text);
-		mButtonSend = (Button)  findViewById(R.id.button_send);
+		mButtonSend = (Button) findViewById(R.id.button_send);
 
 		// Get local Bluetooth adapter
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -302,14 +331,14 @@ public class MultiWiiMainActivity extends Activity {
 		
 		Matrix matrix = new Matrix();
 		matrix.setRotate(copter.angleX);
-		Bitmap bmp = Bitmap.createBitmap(bitmapOrg, 0, 0, bitmapOrg.getWidth(), bitmapOrg.getHeight(), matrix, true);
+		Bitmap bmp = Bitmap.createBitmap(picWiiFront, 0, 0, picWiiFront.getWidth(), picWiiFront.getHeight(), matrix, true);
 		imageViewRoll.setImageBitmap(bmp);
-
+		
 		matrix = new Matrix();
 		matrix.setRotate(copter.angleY);
-		bmp = Bitmap.createBitmap(bitmapOrg, 0, 0, bitmapOrg.getWidth(), bitmapOrg.getHeight(), matrix, true);
+		bmp = Bitmap.createBitmap(picWiiSide, 0, 0, picWiiSide.getWidth(), picWiiSide.getHeight(), matrix, true);
 		imageViewPitch.setImageBitmap(bmp);
-		
+
 		pAx.setProgress(copter.ax+256);
 		pAy.setProgress(copter.ay+256);
 		pAz.setProgress(copter.az+256);
@@ -334,7 +363,7 @@ public class MultiWiiMainActivity extends Activity {
 		return false;
 	}
 
-
+	
 	TimerTask pollTask = new TimerTask() {
 		@Override
 		public void run() {

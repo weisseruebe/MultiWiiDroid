@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2009 The Android Open Source Project
+<!--
+     Copyright (C) 2009 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -13,16 +14,15 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/AbsoluteLayout1"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:layout_height="match_parent" >
 
     <LinearLayout
         android:id="@+id/linearLayout1"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.44"
+        android:layout_height="330dp"
         android:orientation="vertical" >
 
         <ProgressBar
@@ -53,24 +53,32 @@
                 android:id="@+id/imageViewRoll"
                 android:layout_width="147dp"
                 android:layout_height="match_parent"
-                android:src="@drawable/wiifront" />
+                android:src="@drawable/wiifront" android:scaleType="center"/>
 
             <ImageView
                 android:id="@+id/imageViewPitch"
                 android:layout_width="160dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:src="@drawable/wiifront" />
-        </LinearLayout>
+                android:scaleType="center"
+                android:src="@drawable/wiiside" />
 
+        </LinearLayout>
     </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/seekBar1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_x="0dp"
+        android:layout_y="468dp" />
 
     <Button
         android:id="@+id/button_send"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:layout_weight="0.15"
+        android:layout_x="2dp"
+        android:layout_y="420dp"
         android:text="@string/send" />
 
-</LinearLayout>
+</AbsoluteLayout>
