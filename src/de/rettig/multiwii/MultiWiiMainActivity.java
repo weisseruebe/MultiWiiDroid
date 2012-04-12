@@ -57,9 +57,12 @@ public class MultiWiiMainActivity extends Activity {
 	int dataIndex = 0;
 	Bitmap picWiiFront;
 	Bitmap picWiiSide;
+	Bitmap picWiiUp;
 	
 	ImageView imageViewRoll;
 	ImageView imageViewPitch;
+	ImageView imageViewMag;
+	
 
 	// Debugging
 	private static final String TAG = "MultWii";
@@ -108,8 +111,7 @@ public class MultiWiiMainActivity extends Activity {
 
 		imageViewRoll = (ImageView) findViewById(R.id.imageViewRoll);
 		imageViewPitch = (ImageView) findViewById(R.id.imageViewPitch);
-		imageViewRoll.setScaleType(ScaleType.CENTER);
-		imageViewPitch.setScaleType(ScaleType.CENTER);
+		imageViewMag = (ImageView) findViewById(R.id.imageView1);
 		
 		pAx = (ProgressBar) findViewById(R.id.progressBar1);
 		pAy = (ProgressBar) findViewById(R.id.progressBar2);
@@ -142,6 +144,7 @@ public class MultiWiiMainActivity extends Activity {
 		});
 		picWiiFront = BitmapFactory.decodeResource(getResources(), R.drawable.wiifront);
 		picWiiSide = BitmapFactory.decodeResource(getResources(), R.drawable.wiiside);
+		picWiiUp = BitmapFactory.decodeResource(getResources(), R.drawable.wiiup);
 
 		mTitle = (TextView) findViewById(R.id.title_left_text);
 		mTitle.setText(R.string.app_name);
@@ -301,13 +304,29 @@ public class MultiWiiMainActivity extends Activity {
 		}
 	}
 
+	private int bytesToInt(byte b1, byte b2){
+		return  (b1 & 0xFF) + (b2 << 8); 
+	}
+	
 	private void processData() {
-		copter.ax = (buffer[2] & 0xFF) + (buffer[3] << 8); 
-		copter.ay = (buffer[4] & 0xFF) + (buffer[5] << 8); 
-		copter.az = (buffer[6] & 0xFF) + (buffer[7] << 8); 
-		copter.angleX = ((buffer[78] & 0xFF) + (buffer[79] << 8)) /10;
-		copter.angleY = ((buffer[80] & 0xFF) + (buffer[81] << 8)) /10; 
-		Log.d(TAG,"Ax "+copter.ax);
+		copter.ax = bytesToInt(buffer[2], buffer[3]); 
+		copter.ay = bytesToInt(buffer[4], buffer[5]); 
+		copter.az = bytesToInt(buffer[6], buffer[7]); 
+	
+		copter.gx = bytesToInt(buffer[8], buffer[9]); 
+		copter.gy = bytesToInt(buffer[10], buffer[11]); 
+		copter.gz = bytesToInt(buffer[12], buffer[13]); 
+	
+		copter.magX = bytesToInt(buffer[14], buffer[15])/3; 
+		copter.magY = bytesToInt(buffer[16], buffer[17])/3; 
+		copter.magZ = bytesToInt(buffer[18], buffer[19])/3; 
+				
+		copter.baro = bytesToInt(buffer[20], buffer[21]); 
+		copter.head = bytesToInt(buffer[22], buffer[23]); 
+		
+		copter.angleX = bytesToInt(buffer[78], buffer[79]) /10;
+		copter.angleY = bytesToInt(buffer[80], buffer[81]) /10; 
+
 		updateUI();
 	}
 
@@ -338,6 +357,11 @@ public class MultiWiiMainActivity extends Activity {
 		matrix.setRotate(copter.angleY);
 		bmp = Bitmap.createBitmap(picWiiSide, 0, 0, picWiiSide.getWidth(), picWiiSide.getHeight(), matrix, true);
 		imageViewPitch.setImageBitmap(bmp);
+
+		matrix = new Matrix();
+		matrix.setRotate(copter.head);
+		bmp = Bitmap.createBitmap(picWiiSide, 0, 0, picWiiSide.getWidth(), picWiiSide.getHeight(), matrix, true);
+		imageViewMag.setImageBitmap(bmp);
 
 		pAx.setProgress(copter.ax+256);
 		pAy.setProgress(copter.ay+256);

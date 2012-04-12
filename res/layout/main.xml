@@ -43,27 +43,46 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <LinearLayout
-            android:id="@+id/linearLayout2"
+        <TableLayout
+            android:id="@+id/TableLayout1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="0.85" >
 
-            <ImageView
-                android:id="@+id/imageViewRoll"
-                android:layout_width="147dp"
-                android:layout_height="match_parent"
-                android:src="@drawable/wiifront" android:scaleType="center"/>
+            <TableRow
+                android:id="@+id/tableRow1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:minHeight="150px" >
 
-            <ImageView
-                android:id="@+id/imageViewPitch"
-                android:layout_width="160dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:scaleType="center"
-                android:src="@drawable/wiiside" />
+                <ImageView
+                    android:id="@+id/imageViewPitch"
+                    android:layout_height="match_parent"
+                    android:scaleType="center"
+                    android:src="@drawable/wiiside" />
 
-        </LinearLayout>
+                <ImageView
+                    android:id="@+id/imageViewRoll"
+                    android:layout_height="match_parent"
+                    android:scaleType="center"
+                    android:src="@drawable/wiifront" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/tableRow2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:minHeight="150px">
+
+                <ImageView
+                    android:id="@+id/imageView1"
+                    android:layout_height="match_parent"
+                    android:scaleType="center"
+                    android:src="@drawable/wiiside" />
+
+            </TableRow>
+
+        </TableLayout>
     </LinearLayout>
 
     <SeekBar
